@@ -1,4 +1,4 @@
-defmodule Robotter.Repo.Migrations.CreatePosts do
+defmodule Malarkey.Repo.Migrations.CreatePosts do
   use Ecto.Migration
 
   def change do

@@ -5,7 +5,7 @@
 # Inside the script, you can read and write to any of your
 # repositories directly:
 #
-#     Robotter.Repo.insert!(%Robotter.SomeSchema{})
+#     Malarkey.Repo.insert!(%Malarkey.SomeSchema{})
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.

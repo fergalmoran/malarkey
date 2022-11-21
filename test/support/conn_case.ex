@@ -1,4 +1,4 @@
-defmodule RobotterWeb.ConnCase do
+defmodule MalarkeyWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule RobotterWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use RobotterWeb.ConnCase, async: true`, although
+  by setting `use MalarkeyWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -20,19 +20,19 @@ defmodule RobotterWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint RobotterWeb.Endpoint
+      @endpoint MalarkeyWeb.Endpoint
 
-      use RobotterWeb, :verified_routes
+      use MalarkeyWeb, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
-      import RobotterWeb.ConnCase
+      import MalarkeyWeb.ConnCase
     end
   end
 
   setup tags do
-    Robotter.DataCase.setup_sandbox(tags)
+    Malarkey.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
@@ -45,7 +45,7 @@ defmodule RobotterWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn}) do
-    user = Robotter.AccountsFixtures.user_fixture()
+    user = Malarkey.AccountsFixtures.user_fixture()
     %{conn: log_in_user(conn, user), user: user}
   end
 
@@ -55,7 +55,7 @@ defmodule RobotterWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user) do
-    token = Robotter.Accounts.generate_user_session_token(user)
+    token = Malarkey.Accounts.generate_user_session_token(user)
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})

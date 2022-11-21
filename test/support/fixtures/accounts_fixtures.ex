@@ -1,7 +1,7 @@
-defmodule Robotter.AccountsFixtures do
+defmodule Malarkey.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Robotter.Accounts` context.
+  entities via the `Malarkey.Accounts` context.
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
@@ -18,7 +18,7 @@ defmodule Robotter.AccountsFixtures do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> Robotter.Accounts.register_user()
+      |> Malarkey.Accounts.register_user()
 
     user
   end

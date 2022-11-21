@@ -1,7 +1,7 @@
-defmodule Robotter.TimelineFixtures do
+defmodule Malarkey.TimelineFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Robotter.Timeline` context.
+  entities via the `Malarkey.Timeline` context.
   """
 
   @doc """
@@ -16,7 +16,7 @@ defmodule Robotter.TimelineFixtures do
         repost_count: 42,
         username: "some username"
       })
-      |> Robotter.Timeline.create_post()
+      |> Malarkey.Timeline.create_post()
 
     post
   end

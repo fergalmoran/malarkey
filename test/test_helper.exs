@@ -1,2 +1,2 @@
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(Robotter.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Malarkey.Repo, :manual)

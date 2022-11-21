@@ -1,4 +1,4 @@
-# Robotter
+# Malarkey
 
 To start your Phoenix server:
 

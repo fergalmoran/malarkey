@@ -7,17 +7,17 @@
 # General application configuration
 import Config
 
-config :robotter,
-  ecto_repos: [Robotter.Repo]
+config :malarkey,
+  ecto_repos: [Malarkey.Repo]
 
 # Configures the endpoint
-config :robotter, RobotterWeb.Endpoint,
+config :malarkey, MalarkeyWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [
-    formats: [html: RobotterWeb.ErrorHTML, json: RobotterWeb.ErrorJSON],
+    formats: [html: MalarkeyWeb.ErrorHTML, json: MalarkeyWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Robotter.PubSub,
+  pubsub_server: Malarkey.PubSub,
   live_view: [signing_salt: "UYdloyCB"]
 
 # Configures the mailer
@@ -27,7 +27,7 @@ config :robotter, RobotterWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :robotter, Robotter.Mailer, adapter: Swoosh.Adapters.Local
+config :malarkey, Malarkey.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,

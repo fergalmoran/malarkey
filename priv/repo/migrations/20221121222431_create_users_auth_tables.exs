@@ -1,4 +1,4 @@
-defmodule Robotter.Repo.Migrations.CreateUsersAuthTables do
+defmodule Malarkey.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do

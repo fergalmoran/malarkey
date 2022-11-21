@@ -1,4 +1,4 @@
-defmodule Robotter.Repo.Migrations.AddFullname do
+defmodule Malarkey.Repo.Migrations.AddFullname do
   use Ecto.Migration
 
   def change do
