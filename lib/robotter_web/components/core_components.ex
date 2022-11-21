@@ -394,7 +394,10 @@ defmodule RobotterWeb.CoreComponents do
   def error(assigns) do
     ~H"""
     <p class="flex gap-3 mt-3 text-sm leading-6 phx-no-feedback:hidden text-rose-600">
-      <Heroicons.exclamation_circle mini class="mt-0.5 h-5 w-5 flex-none fill-rose-500" />
+      <%= Heroicons.icon("exclamation-circle",
+        type: "mini",
+        class: "mt-0.5 h-5 w-5 flex-none fill-rose-500"
+      ) %>
       <%= render_slot(@inner_block) %>
     </p>
     """
@@ -537,7 +540,10 @@ defmodule RobotterWeb.CoreComponents do
         navigate={@navigate}
         class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
       >
-        <Heroicons.arrow_left solid class="inline w-3 h-3 stroke-current" />
+        <%= Heroicons.icon("arrow-left",
+          type: "solid",
+          class: "inline w-3 h-3 stroke-current"
+        ) %>
         <%= render_slot(@inner_block) %>
       </.link>
     </div>
