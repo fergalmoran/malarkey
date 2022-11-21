@@ -18,7 +18,10 @@ defmodule Robotter.Timeline do
 
   """
   def list_posts do
-    Repo.all(Post)
+    Repo.all(
+      Post
+      |> order_by(desc: :inserted_at)
+    )
   end
 
   @doc """
