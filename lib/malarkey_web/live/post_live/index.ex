@@ -23,7 +23,7 @@ defmodule MalarkeyWeb.PostLive.Index do
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "New Post")
+    |> assign(:page_title, "More Malarkey")
     |> assign(:post, %Post{})
   end
 

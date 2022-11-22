@@ -2,7 +2,10 @@
   Timeline
   <:actions>
     <.link patch={~p"/posts/new"}>
-      <.button>New Post</.button>
+        <button class="inline-flex items-center px-3 py-2 text-sm font-semibold leading-6 text-white rounded-lg phx-submit-loading:opacity-75 bg-zinc-900 hover:bg-zinc-700 active:text-white/80">
+        <%= Heroicons.icon("plus-circle", type: "outline", class: "w-5 h-5 stroke-current mr-1") %>
+        <span>More Malarkey</span>
+        </button>
     </.link>
   </:actions>
 </.header>
@@ -12,24 +15,6 @@
         <.live_component module={MalarkeyWeb.PostLive.PostComponent} id={post.id}, post={post} />
     <% end %>
 </div>
-<%!-- <.table id="posts" rows={@posts} row_click={&JS.navigate(~p"/posts/#{&1}")}>
-  <:col :let={post} label="Username"><%= post.username %></:col>
-  <:col :let={post} label="Body"><%= post.body %></:col>
-  <:col :let={post} label="Likes count"><%= post.likes_count %></:col>
-  <:col :let={post} label="Repost count"><%= post.repost_count %></:col>
-  <:action :let={post}>
-    <div class="sr-only">
-      <.link navigate={~p"/posts/#{post}"}>Show</.link>
-    </div>
-    <.link patch={~p"/posts/#{post}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={post}>
-    <.link phx-click={JS.push("delete", value: %{id: post.id})} data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table> --%>
-
 <.modal
   :if={@live_action in [:new, :edit]}
   id="post-modal"
