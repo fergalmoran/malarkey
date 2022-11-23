@@ -12,7 +12,7 @@
 
 <div id="posts" phx-update="prepend">
  <%= if @current_user do %>
- <h1>ASkljdaksjdhsa</h1>
+ <h1>Hello <%= @current_user.fullname %></h1>
  <% end %>
     <%= for post <- @posts do %>
         <.live_component module={MalarkeyWeb.PostLive.PostComponent} id={post.id}, post={post} />
