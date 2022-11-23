@@ -8,6 +8,8 @@ defmodule Malarkey.Repo.Migrations.CreateUsersAuthTables do
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
+      add :username, :string
+      add :fullname, :string
       timestamps()
     end
 

@@ -17,8 +17,8 @@ defmodule Malarkey.Timeline do
 
   def get_post!(id), do: Repo.get!(Post, id)
 
-  def create_post(attrs \\ %{}) do
-    %Post{}
+  def create_post(current_user, attrs \\ %{}) do
+    %Post{user_id: current_user.id}
     |> Post.changeset(attrs)
     |> Repo.insert()
     |> broadcast(:post_created)

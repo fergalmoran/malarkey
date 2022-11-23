@@ -1,10 +1,10 @@
 <.header>
   Timeline
   <:actions>
-    <.link patch={~p"/posts/new"}>
+    <.link patch={@current_user && ~p"/posts/new" || "/users/log_in"}>
         <button class="inline-flex items-center px-3 py-2 text-sm font-semibold leading-6 text-white rounded-lg bg-brand phx-submit-loading:opacity-75 hover:bg-zinc-700 active:text-white/80">
         <%= Heroicons.icon("plus-circle", type: "outline", class: "w-5 h-5 stroke-current mr-1") %>
-        <span>More Malarkey</span>
+        <span>Add Malarkey</span>
         </button>
     </.link>
   </:actions>
@@ -12,10 +12,12 @@
 
 <div id="posts" phx-update="prepend">
  <%= if @current_user do %>
- <h1>Hello <%= @current_user.fullname %></h1>
+ <h1 id="user-greeting">Hello, <%= @current_user.fullname %></h1>
+ <% else %>
+ <h1 id="anonymous-greeting">Hello, Sailor!</h1>
  <% end %>
     <%= for post <- @posts do %>
-        <.live_component module={MalarkeyWeb.PostLive.PostComponent} id={post.id}, post={post} />
+        <.live_component module={MalarkeyWeb.PostLive.PostComponent} id={post.id}, post={post}, current_user={@current_user} />
     <% end %>
 </div>
 <.modal
@@ -30,6 +32,7 @@
     title={@page_title}
     action={@live_action}
     post={@post}
+    user={@current_user}
     navigate={~p"/posts"}
   />
 </.modal>

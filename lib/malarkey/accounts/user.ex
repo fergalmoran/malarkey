@@ -1,13 +1,17 @@
 defmodule Malarkey.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Malarkey.Timeline.Post
 
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :username, :string
+    field :fullname, :string
 
+    has_many :posts, Post
     timestamps()
   end
 
