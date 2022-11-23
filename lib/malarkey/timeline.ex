@@ -39,7 +39,7 @@ defmodule Malarkey.Timeline do
     Post.changeset(post, attrs)
   end
 
-  def subsribe do
+  def subscribe do
     Phoenix.PubSub.subscribe(Malarkey.PubSub, "posts")
   end
 
