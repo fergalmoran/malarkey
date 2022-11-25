@@ -4,21 +4,26 @@ defmodule Malarkey.Timeline do
   """
 
   import Ecto.Query, warn: false
+  import Ecto.Changeset
+
   alias Malarkey.Repo
+  alias Malarkey.Accounts
 
   alias Malarkey.Timeline.Post
 
-  def list_posts do
-    Repo.all(
-      Post
-      |> order_by(desc: :inserted_at)
-    )
+  def list_posts() do
+    # preloads = Keyword.get(opts, :preloads, [])
+
+    Post
+    |> order_by(desc: :inserted_at)
+    |> Repo.all()
+    |> Repo.preload(:user)
   end
 
   def get_post!(id), do: Repo.get!(Post, id)
 
-  def create_post(attrs \\ %{}) do
-    %Post{}
+  def create_post(user, attrs \\ %{}) do
+    %Post{user_id: user.id}
     |> Post.changeset(attrs)
     |> Repo.insert()
     |> broadcast(:post_created)

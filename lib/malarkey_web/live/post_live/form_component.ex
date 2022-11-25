@@ -1,5 +1,6 @@
 defmodule MalarkeyWeb.PostLive.FormComponent do
   use MalarkeyWeb, :live_component
+  require Logger
 
   alias Malarkey.Timeline
 
@@ -9,7 +10,7 @@ defmodule MalarkeyWeb.PostLive.FormComponent do
     <div>
       <.header>
         <%= @title %>
-        <:subtitle>Dazzle us!!</:subtitle>
+        <:subtitle>Dazzle us, <%= @user.fullname %>!!</:subtitle>
       </.header>
 
       <.simple_form
@@ -67,7 +68,7 @@ defmodule MalarkeyWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
-    case Timeline.create_post(post_params) do
+    case Timeline.create_post(socket.assigns.user, post_params) do
       {:ok, _post} ->
         {:noreply,
          socket

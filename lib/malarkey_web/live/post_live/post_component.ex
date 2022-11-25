@@ -1,9 +1,8 @@
 defmodule MalarkeyWeb.PostLive.PostComponent do
   use MalarkeyWeb, :live_component
-  alias Malarkey.Timeline
-  alias Malarkey.Timeline.Post
 
   @impl true
+  @spec render(any) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
     <div class="max-w-xl mx-auto my-6">
@@ -17,7 +16,7 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
           <div class="flex items-center flex-1">
             <div class="flex items-center flex-1">
               <h3 class="mr-2 font-bold hover:underline">
-                <a href="#"><%= @post.fullname %></a>
+                <a href="#"><%= @post.user.fullname %></a>
               </h3>
               <span class="mr-2">
                 <svg
@@ -33,7 +32,7 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
                   </g>
                 </svg>
               </span>
-              <span class="mr-1 text-sm text-gray-600">@<%= @post.username %></span>
+              <span class="mr-1 text-sm text-gray-600">@<%= @post.user.username %></span>
               <span class="mr-1 text-sm text-gray-600">·</span>
               <span class="text-sm text-gray-600">Apr 7</span>
             </div>
