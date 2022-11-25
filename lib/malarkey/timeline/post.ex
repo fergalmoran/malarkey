@@ -16,8 +16,9 @@ defmodule Malarkey.Timeline.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:body])
+    |> cast(attrs, [:body, :user_id])
     |> validate_required([:body])
+    |> validate_required([:user_id])
     |> validate_length(:body, min: 2, max: 250)
   end
 end

@@ -68,10 +68,7 @@ defmodule MalarkeyWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
-    Logger.debug("POST PARAMS")
-    Logger.debug(post_params)
-
-    case Timeline.create_post(socket.assigns.current_user, post_params) do
+    case Timeline.create_post(socket.assigns.user, post_params) do
       {:ok, _post} ->
         {:noreply,
          socket

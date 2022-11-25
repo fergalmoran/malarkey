@@ -7,9 +7,6 @@ defmodule MalarkeyWeb.UserLiveAuth do
   @spec on_mount(:default, any, any, map) ::
           {:cont, %{:assigns => atom | map, optional(any) => any}}
   def on_mount(:default, _params, session, socket) do
-    Logger.info("Mounting user live auth")
-    Logger.debug(session)
-
     socket = assign_new(socket, :current_user, fn -> get_current_user(session) end)
     {:cont, socket}
   end
