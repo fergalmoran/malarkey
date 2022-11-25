@@ -6,9 +6,7 @@ defmodule MalarkeyWeb.PostLive.Index do
   on_mount MalarkeyWeb.UserLiveAuth
 
   @impl true
-  def mount(_params, session, socket) do
-    IO.inspect(session)
-    IO.inspect(socket.assigns)
+  def mount(_params, _session, socket) do
     if connected?(socket), do: Timeline.subscribe()
     {:ok, assign(socket, :posts, list_posts()), temporary_assigns: [posts: []]}
   end

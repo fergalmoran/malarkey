@@ -1,7 +1,6 @@
-# fly.toml file generated for malarkey on 2022-11-22T11:57:32Z
+# fly.toml file generated for malarkey on 2022-11-25T18:51:01Z
 
 app = "malarkey"
-
 kill_signal = "SIGTERM"
 kill_timeout = 5
 processes = []
@@ -23,7 +22,6 @@ processes = []
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
-
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20
