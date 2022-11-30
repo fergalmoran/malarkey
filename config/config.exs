@@ -18,7 +18,8 @@ config :malarkey, MalarkeyWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Malarkey.PubSub,
-  live_view: [signing_salt: "UYdloyCB"]
+  live_view: [signing_salt: "UYdloyCB"],
+  check_origin: ["https://malarkey.fergl.ie/"]
 
 # Configures the mailer
 #
