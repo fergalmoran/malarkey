@@ -4,11 +4,8 @@ defmodule Malarkey.Timeline do
   """
 
   import Ecto.Query, warn: false
-  import Ecto.Changeset
 
   alias Malarkey.Repo
-  alias Malarkey.Accounts
-
   alias Malarkey.Timeline.Post
 
   def list_posts() do
@@ -29,7 +26,7 @@ defmodule Malarkey.Timeline do
     |> broadcast(:post_created)
   end
 
-  def update_post(%Post{} = post, attrs) do
+  def update_post(%Post{} = post, attrs \\ %{}) do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
@@ -42,6 +39,14 @@ defmodule Malarkey.Timeline do
 
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
+  end
+
+  def add_like(%Post{id: id}) do
+    {1, [post]} =
+      from(p in Post, where: p.id == ^id, select: p)
+      |> Repo.update_all(inc: [likes_count: 1])
+
+    broadcast({:ok, post}, :post_created)
   end
 
   def subscribe do

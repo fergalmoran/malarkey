@@ -1,6 +1,6 @@
 defmodule MalarkeyWeb.PostLive.Index do
   use MalarkeyWeb, :live_view
-
+  require Logger
   alias Malarkey.Timeline
   alias Malarkey.Timeline.Post
   on_mount MalarkeyWeb.UserLiveAuth

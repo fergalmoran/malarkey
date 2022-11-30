@@ -1,5 +1,14 @@
 defmodule MalarkeyWeb.PostLive.PostComponent do
   use MalarkeyWeb, :live_component
+  alias Malarkey.Timeline
+
+  @impl true
+  def handle_event("like", _, socket) do
+    IO.inspect(socket)
+
+    {:ok, _} = Timeline.add_like(socket.assigns.post)
+    {:noreply, socket}
+  end
 
   @impl true
   @spec render(any) :: Phoenix.LiveView.Rendered.t()
@@ -11,7 +20,6 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
           src="https://joeschmoe.io/api/v1/random?q=#{@post.id}"
           class="w-12 h-12 mr-3 rounded-full"
         />
-
         <div class="flex flex-wrap items-start justify-start flex-1">
           <div class="flex items-center flex-1">
             <div class="flex items-center flex-1">
@@ -76,6 +84,9 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
               <div class="flex items-center mr-8 text-gray-600 hover:text-green-500">
                 <a
                   href="#"
+                  href="#"
+                  phx-click="retweet"
+                  phx-target={@myself}
                   class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-green-200 hover:text-green-500"
                 >
                   <%= Heroicons.icon("arrow-path-rounded-square", type: "outline", class: "w-5 h-5") %>
@@ -84,13 +95,13 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500">
-                <a
-                  href="#"
-                  class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-200 hover:text-red-500"
-                >
+                <.link phx-click="like" phx-target={@myself}>
                   <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
-                </a>
-                <span class="ml-1">99.9K</span>
+                </.link>
+                <%!-- <.link patch={~p"/posts/#{@post}/like"}>
+                  <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
+                </.link> --%>
+                <span class="ml-1"><%= @post.likes_count %></span>
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500 pull">
