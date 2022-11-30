@@ -6,6 +6,8 @@ defmodule MalarkeyWeb.PostLive.Index do
   on_mount MalarkeyWeb.UserLiveAuth
 
   @impl true
+  @spec mount(any, any, Phoenix.LiveView.Socket.t()) ::
+          {:ok, map, [{:temporary_assigns, [...]}, ...]}
   def mount(_params, _session, socket) do
     if connected?(socket), do: Timeline.subscribe()
     {:ok, assign(socket, :posts, list_posts()), temporary_assigns: [posts: []]}
