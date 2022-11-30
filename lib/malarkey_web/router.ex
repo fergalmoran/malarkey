@@ -23,6 +23,7 @@ defmodule MalarkeyWeb.Router do
     live "/", PostLive.Index, :index
     live "/posts", PostLive.Index, :index
     live "/posts/new", PostLive.Index, :new
+    live "/posts/:id/like", PostLive.Index, :like
     live "/posts/:id/edit", PostLive.Index, :edit
 
     live "/posts/:id", PostLive.Show, :show
