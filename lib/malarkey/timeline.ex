@@ -46,11 +46,15 @@ defmodule Malarkey.Timeline do
       from(p in Post, where: p.id == ^id, select: p)
       |> Repo.update_all(inc: [likes_count: 1])
 
-    broadcast({:ok, post}, :post_created)
+    broadcast({:ok, wrap_post(post)}, :post_created)
   end
 
   def subscribe do
     Phoenix.PubSub.subscribe(Malarkey.PubSub, "posts")
+  end
+
+  defp wrap_post(post) do
+    post |> Repo.preload(:user)
   end
 
   defp broadcast({:error, _reason} = error, _event), do: error
