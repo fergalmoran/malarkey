@@ -5,7 +5,6 @@ defmodule Malarkey.Timeline.Post do
 
   schema "posts" do
     field :body, :string
-    field :likes_count, :integer, default: 0
     field :repost_count, :integer, default: 0
 
     belongs_to(:user, User)

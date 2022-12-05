@@ -96,7 +96,7 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
                 <%!-- <.link patch={~p"/posts/#{@post}/like"}>
                   <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
                 </.link> --%>
-                <span class="ml-1"><%= @post.likes_count %></span>
+                <span class="ml-1"><%= length(@post.liked_by) %></span>
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500 pull">
