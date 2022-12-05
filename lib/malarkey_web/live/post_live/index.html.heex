@@ -12,7 +12,7 @@
 
 <div id="posts" phx-update="prepend">
   <%= if !!@current_user do %>
-    <h1 id="user-greeting">Hello, <%= !!@current_user.fullname %></h1>
+    <h1 id="user-greeting">Hi, <%= !!@current_user.fullname %></h1>
   <% else %>
     <h1 id="anonymous-greeting">Hello, Sailor!</h1>
   <% end %>
