@@ -5,6 +5,7 @@ defmodule Malarkey.Timeline do
 
   import Ecto.Query, warn: false
 
+  alias Malarkey.Accounts
   alias Malarkey.Repo
   alias Malarkey.Timeline.Post
 
@@ -15,6 +16,7 @@ defmodule Malarkey.Timeline do
     |> order_by(desc: :inserted_at)
     |> Repo.all()
     |> Repo.preload(:user)
+    |> Repo.preload(:liked_by)
   end
 
   def get_post!(id), do: Repo.get!(Post, id)
@@ -41,20 +43,17 @@ defmodule Malarkey.Timeline do
     Post.changeset(post, attrs)
   end
 
-  def add_like(%Post{id: id}) do
-    {1, [post]} =
-      from(p in Post, where: p.id == ^id, select: p)
-      |> Repo.update_all(inc: [likes_count: 1])
-
-    broadcast({:ok, wrap_post(post)}, :post_created)
+  def add_like(user, post) do
+    post
+    |> Repo.preload(:liked_by)
+    |> Repo.preload(:user)
+    |> Post.changeset_add_like(user)
+    |> Repo.update()
+    |> broadcast(:post_created)
   end
 
   def subscribe do
     Phoenix.PubSub.subscribe(Malarkey.PubSub, "posts")
-  end
-
-  defp wrap_post(post) do
-    post |> Repo.preload(:user)
   end
 
   defp broadcast({:error, _reason} = error, _event), do: error

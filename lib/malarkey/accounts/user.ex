@@ -11,7 +11,13 @@ defmodule Malarkey.Accounts.User do
     field :username, :string
     field :fullname, :string
 
-    has_many :posts, Post
+    many_to_many(
+      :likes,
+      Post,
+      join_through: Malarkey.Timeline.PostUserLike,
+      on_replace: :delete
+    )
+
     timestamps()
   end
 

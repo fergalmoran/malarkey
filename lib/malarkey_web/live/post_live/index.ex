@@ -18,6 +18,12 @@ defmodule MalarkeyWeb.PostLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
+  defp apply_action(socket, :like, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Edit Post")
+    |> assign(:post, Timeline.get_post!(id))
+  end
+
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Post")
@@ -34,6 +40,14 @@ defmodule MalarkeyWeb.PostLive.Index do
     socket
     |> assign(:page_title, "Listing Posts")
     |> assign(:post, nil)
+  end
+
+  @impl true
+  def handle_event("like", %{"id" => id}, socket) do
+    post = Timeline.get_post!(id)
+    {:ok, _} = Timeline.add_like(socket.assigns.current_user, post)
+
+    {:noreply, assign(socket, :posts, list_posts())}
   end
 
   @impl true
