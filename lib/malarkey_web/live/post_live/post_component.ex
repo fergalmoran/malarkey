@@ -74,28 +74,16 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
               </div>
 
               <div class="flex items-center mr-8 text-gray-600 hover:text-green-500">
-                <a
-                  href="#"
-                  href="#"
-                  phx-click="retweet"
-                  phx-target={@myself}
-                  class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-green-200 hover:text-green-500"
-                >
+                <.link phx-click={JS.push("repost", value: %{id: @post.id})}>
                   <%= Heroicons.icon("arrow-path-rounded-square", type: "outline", class: "w-5 h-5") %>
-                </a>
-                <span class="ml-1">6.7K</span>
+                </.link>
+                <span class="ml-1"><%= length(@post.reposted_by) %></span>
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500">
-                <%!-- <.link phx-click="like" phx-target={@myself}>
-                  <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
-                </.link> --%>
                 <.link phx-click={JS.push("like", value: %{id: @post.id})}>
                   <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
                 </.link>
-                <%!-- <.link patch={~p"/posts/#{@post}/like"}>
-                  <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
-                </.link> --%>
                 <span class="ml-1"><%= length(@post.liked_by) %></span>
               </div>
 
