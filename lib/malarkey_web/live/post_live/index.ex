@@ -51,6 +51,14 @@ defmodule MalarkeyWeb.PostLive.Index do
   end
 
   @impl true
+  def handle_event("repost", %{"id" => id}, socket) do
+    post = Timeline.get_post!(id)
+    {:ok, _} = Timeline.add_repost(socket.assigns.current_user, post)
+
+    {:noreply, assign(socket, :posts, list_posts())}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     post = Timeline.get_post!(id)
     {:ok, _} = Timeline.delete_post(post)

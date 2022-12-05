@@ -5,14 +5,26 @@ defmodule Malarkey.Timeline.Post do
 
   schema "posts" do
     field :body, :string
-    field :repost_count, :integer, default: 0
-
     belongs_to(:user, User)
 
     many_to_many(
       :liked_by,
       User,
       join_through: Malarkey.Timeline.PostUserLike,
+      on_replace: :delete
+    )
+
+    many_to_many(
+      :disliked_by,
+      User,
+      join_through: Malarkey.Timeline.PostUserDislike,
+      on_replace: :delete
+    )
+
+    many_to_many(
+      :reposted_by,
+      User,
+      join_through: Malarkey.Timeline.PostUserRepost,
       on_replace: :delete
     )
 
@@ -37,18 +49,15 @@ defmodule Malarkey.Timeline.Post do
     |> validate_length(:body, min: 2, max: 250)
   end
 
-  @spec changeset_add_like(
-          {map, map}
-          | %{
-              :__struct__ => atom | %{:__changeset__ => map, optional(any) => any},
-              optional(atom) => any
-            },
-          any,
-          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
-        ) :: Ecto.Changeset.t()
   def changeset_add_like(post, user, attrs \\ %{}) do
     post
     |> changeset(attrs)
     |> put_assoc(:liked_by, [user])
+  end
+
+  def changeset_add_repost(post, user, attrs \\ %{}) do
+    post
+    |> changeset(attrs)
+    |> put_assoc(:reposted_by, [user])
   end
 end

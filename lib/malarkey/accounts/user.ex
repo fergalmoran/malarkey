@@ -18,6 +18,20 @@ defmodule Malarkey.Accounts.User do
       on_replace: :delete
     )
 
+    many_to_many(
+      :dislikes,
+      Post,
+      join_through: Malarkey.Timeline.PostUserDislike,
+      on_replace: :delete
+    )
+
+    many_to_many(
+      :reposts,
+      Post,
+      join_through: Malarkey.Timeline.PostUserReposts,
+      on_replace: :delete
+    )
+
     timestamps()
   end
 

@@ -17,9 +17,17 @@ defmodule Malarkey.Timeline do
     |> Repo.all()
     |> Repo.preload(:user)
     |> Repo.preload(:liked_by)
+    |> Repo.preload(:disliked_by)
+    |> Repo.preload(:reposted_by)
   end
 
-  def get_post!(id), do: Repo.get!(Post, id)
+  def get_post!(id) do
+    Repo.get!(Post, id)
+    |> Repo.preload(:user)
+    |> Repo.preload(:liked_by)
+    |> Repo.preload(:disliked_by)
+    |> Repo.preload(:reposted_by)
+  end
 
   def create_post(user, attrs \\ %{}) do
     %Post{user_id: user.id}
@@ -48,6 +56,15 @@ defmodule Malarkey.Timeline do
     |> Repo.preload(:liked_by)
     |> Repo.preload(:user)
     |> Post.changeset_add_like(user)
+    |> Repo.update()
+    |> broadcast(:post_created)
+  end
+
+  def add_repost(user, post) do
+    post
+    |> Repo.preload(:reposted_by)
+    |> Repo.preload(:user)
+    |> Post.changeset_add_repost(user)
     |> Repo.update()
     |> broadcast(:post_created)
   end

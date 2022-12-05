@@ -54,12 +54,6 @@ defmodule MalarkeyWeb.PostLive.FormComponent do
     save_post(socket, socket.assigns.action, post_params)
   end
 
-  @impl true
-  def handle_event("like", _, socket) do
-    Timeline.add_like(socket.assigns.current_user, socket.assigns.post)
-    {:noreply, socket}
-  end
-
   defp save_post(socket, :like, _post_params) do
     case Timeline.add_like(socket.assigns.current_user, socket.assigns.post) do
       {:ok, _post} ->
