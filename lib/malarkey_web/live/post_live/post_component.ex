@@ -3,14 +3,6 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
   alias Malarkey.Timeline
 
   @impl true
-  def handle_event("like", _, socket) do
-    IO.inspect(socket)
-
-    {:ok, _} = Timeline.add_like(socket.assigns.post)
-    {:noreply, socket}
-  end
-
-  @impl true
   @spec render(any) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
@@ -95,13 +87,16 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500">
-                <.link phx-click="like" phx-target={@myself}>
+                <%!-- <.link phx-click="like" phx-target={@myself}>
+                  <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
+                </.link> --%>
+                <.link phx-click={JS.push("like", value: %{id: @post.id})}>
                   <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
                 </.link>
                 <%!-- <.link patch={~p"/posts/#{@post}/like"}>
                   <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
                 </.link> --%>
-                <span class="ml-1"><%= @post.likes_count %></span>
+                <span class="ml-1"><%= length(@post.liked_by) %></span>
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500 pull">
