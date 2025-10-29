@@ -1,6 +1,6 @@
 defmodule MalarkeyWeb.PostLive.PostComponent do
   use MalarkeyWeb, :live_component
-  alias Malarkey.Timeline
+  alias Malarkey.Accounts
 
   @impl true
   @spec render(any) :: Phoenix.LiveView.Rendered.t()
@@ -8,10 +8,7 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
     ~H"""
     <div class="max-w-xl mx-auto my-6">
       <article class="flex flex-wrap items-start p-2 border-t border-b border-gray-400 cursor-pointer hover:bg-gray-100">
-        <img
-          src="https://joeschmoe.io/api/v1/random?q=#{@post.id}"
-          class="w-12 h-12 mr-3 rounded-full"
-        />
+        <img src="https://i.pravatar.cc/300?u=#{@post.id}" class="w-12 h-12 mr-3 rounded-full" />
         <div class="flex flex-wrap items-start justify-start flex-1">
           <div class="flex items-center flex-1">
             <div class="flex items-center flex-1">
@@ -53,6 +50,7 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
 
           <div class="w-full">
             <p class="my-1"><%= @post.body %></p>
+            <%!-- Item has embedded media --%>
             <%= if false do %>
               <div class="rounded-lg">
                 <img
@@ -74,14 +72,20 @@ defmodule MalarkeyWeb.PostLive.PostComponent do
               </div>
 
               <div class="flex items-center mr-8 text-gray-600 hover:text-green-500">
-                <.link phx-click={JS.push("repost", value: %{id: @post.id})}>
+                <.link phx-click={
+                  (@user && JS.push("repost", value: %{id: @post.id})) ||
+                    JS.push("login")
+                }>
                   <%= Heroicons.icon("arrow-path-rounded-square", type: "outline", class: "w-5 h-5") %>
                 </.link>
                 <span class="ml-1"><%= length(@post.reposted_by) %></span>
               </div>
 
               <div class="flex items-center mr-6 text-gray-600 hover:text-red-500">
-                <.link phx-click={JS.push("like", value: %{id: @post.id})}>
+                <.link phx-click={
+                  (@user && JS.push("like", value: %{id: @post.id})) ||
+                    JS.push("login")
+                }>
                   <%= Heroicons.icon("heart", type: "outline", class: "w-5 h-5") %>
                 </.link>
                 <span class="ml-1"><%= length(@post.liked_by) %></span>

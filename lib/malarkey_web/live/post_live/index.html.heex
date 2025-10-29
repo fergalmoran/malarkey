@@ -1,5 +1,9 @@
 <.header>
-  Timeline
+  <%= if !!@current_user do %>
+    <div id="user-greeting">Hi, <%= !!@current_user.fullname || "Sailor" %></div>
+  <% else %>
+    <div id="anonymous-greeting">Hello, Sailor!</div>
+  <% end %>
   <:actions>
     <.link patch={(!!@current_user && ~p"/posts/new") || "/users/log_in"}>
       <button class="inline-flex items-center px-3 py-2 text-sm font-semibold leading-6 text-white rounded-lg bg-brand phx-submit-loading:opacity-75 hover:bg-zinc-700 active:text-white/80">
@@ -11,13 +15,13 @@
 </.header>
 
 <div id="posts" phx-update="prepend">
-  <%= if !!@current_user do %>
-    <h1 id="user-greeting">Hi, <%= !!@current_user.fullname %></h1>
-  <% else %>
-    <h1 id="anonymous-greeting">Hello, Sailor!</h1>
-  <% end %>
   <%= for post <- @posts do %>
-    <.live_component module={MalarkeyWeb.PostLive.PostComponent} id={post.id} , post={post} />
+    <.live_component
+      module={MalarkeyWeb.PostLive.PostComponent}
+      id={post.id}
+      post={post}
+      user={@current_user}
+    />
   <% end %>
 </div>
 <.modal

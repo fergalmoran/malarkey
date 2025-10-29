@@ -5,7 +5,7 @@ defmodule Malarkey.Timeline do
 
   import Ecto.Query, warn: false
 
-  alias Malarkey.Accounts
+  alias Malarkey.Timeline.PostUserLike
   alias Malarkey.Repo
   alias Malarkey.Timeline.Post
 
@@ -40,7 +40,7 @@ defmodule Malarkey.Timeline do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
-    |> broadcast(:post_created)
+    |> broadcast(:post_updated)
   end
 
   def delete_post(%Post{} = post) do
@@ -52,12 +52,17 @@ defmodule Malarkey.Timeline do
   end
 
   def add_like(user, post) do
-    post
-    |> Repo.preload(:liked_by)
-    |> Repo.preload(:user)
-    |> Post.changeset_add_like(user)
-    |> Repo.update()
-    |> broadcast(:post_created)
+    if user in post.liked_by do
+      Repo.delete_all(PostUserLike.user_post_like_query(user, post))
+      |> broadcast(:post_updated)
+    else
+      post
+      |> Repo.preload(:liked_by)
+      |> Repo.preload(:user)
+      |> Post.changeset_add_like(user)
+      |> Repo.update()
+      |> broadcast(:post_updated)
+    end
   end
 
   def add_repost(user, post) do
