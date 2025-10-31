@@ -35,4 +35,4 @@ malarkey-*.tar
 npm-debug.log
 /assets/node_modules/
 
-priv/
+priv/static/uploads/
