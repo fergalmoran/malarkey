@@ -1,5 +1,6 @@
 defmodule MalarkeyWeb.UserAuth do
   use MalarkeyWeb, :verified_routes
+
   import Plug.Conn
   import Phoenix.Controller
 
@@ -80,7 +81,7 @@ defmodule MalarkeyWeb.UserAuth do
     conn
     |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
-    |> redirect(to: "/")
+    |> redirect(to: ~p"/")
   end
 
   @doc """
@@ -90,7 +91,7 @@ defmodule MalarkeyWeb.UserAuth do
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
-    assign(conn, :current_user, user || nil)
+    assign(conn, :current_user, user)
   end
 
   defp ensure_user_token(conn) do
@@ -133,6 +134,7 @@ defmodule MalarkeyWeb.UserAuth do
         use MalarkeyWeb, :live_view
 
         on_mount {MalarkeyWeb.UserAuth, :mount_current_user}
+
         ...
       end
 
@@ -172,15 +174,11 @@ defmodule MalarkeyWeb.UserAuth do
   end
 
   defp mount_current_user(session, socket) do
-    case session do
-      %{"user_token" => user_token} ->
-        Phoenix.Component.assign_new(socket, :current_user, fn ->
-          Accounts.get_user_by_session_token(user_token)
-        end)
-
-      %{} ->
-        Phoenix.Component.assign_new(socket, :current_user, fn -> nil end)
-    end
+    Phoenix.Component.assign_new(socket, :current_user, fn ->
+      if user_token = session["user_token"] do
+        Accounts.get_user_by_session_token(user_token)
+      end
+    end)
   end
 
   @doc """

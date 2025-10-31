@@ -7,16 +7,22 @@ defmodule MalarkeyWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_malarkey_key",
-    signing_salt: "nOkCv+jj",
+    signing_salt: "Iwb1Vb0s",
     same_site: "Lax"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [session: @session_options]],
+    longpoll: [connect_info: [session: @session_options]]
+
+  # Serve at "/uploads" the static files from "priv/static/uploads" directory.
+  plug Plug.Static,
+    at: "/uploads",
+    from: Path.expand("./priv/static/uploads"),
+    gzip: false,
+    only: ~w()
 
   # Serve at "/" the static files from "priv/static" directory.
-  #
-  # You should set gzip to true if you are running phx.digest
-  # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
     from: :malarkey,

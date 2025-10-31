@@ -1,36 +1,37 @@
 defmodule Malarkey.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Malarkey.Timeline.Post
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   schema "users" do
     field :email, :string
+    field :username, :string
+    field :display_name, :string
+    field :bio, :string
+    field :location, :string
+    field :website, :string
+    field :avatar_url, :string
+    field :header_url, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
+    field :verified, :boolean, default: false
+    field :followers_count, :integer, default: 0
+    field :following_count, :integer, default: 0
+    field :posts_count, :integer, default: 0
     field :confirmed_at, :naive_datetime
-    field :username, :string
-    field :fullname, :string
 
-    many_to_many(
-      :likes,
-      Post,
-      join_through: Malarkey.Timeline.PostUserLike,
-      on_replace: :delete
-    )
+    has_many :posts, Malarkey.Social.Post
+    has_many :likes, Malarkey.Social.Like
+    has_many :oauth_identities, Malarkey.Accounts.OAuthIdentity
 
-    many_to_many(
-      :dislikes,
-      Post,
-      join_through: Malarkey.Timeline.PostUserDislike,
-      on_replace: :delete
-    )
+    many_to_many :followers, Malarkey.Accounts.User,
+      join_through: "follows",
+      join_keys: [following_id: :id, follower_id: :id]
 
-    many_to_many(
-      :reposts,
-      Post,
-      join_through: Malarkey.Timeline.PostUserReposts,
-      on_replace: :delete
-    )
+    many_to_many :following, Malarkey.Accounts.User,
+      join_through: "follows",
+      join_keys: [follower_id: :id, following_id: :id]
 
     timestamps()
   end
@@ -60,8 +61,9 @@ defmodule Malarkey.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :username, :display_name])
     |> validate_email(opts)
+    |> validate_username()
     |> validate_password(opts)
   end
 
@@ -73,10 +75,21 @@ defmodule Malarkey.Accounts.User do
     |> maybe_validate_unique_email(opts)
   end
 
+  defp validate_username(changeset) do
+    changeset
+    |> validate_required([:username])
+    |> validate_length(:username, min: 3, max: 15)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/,
+      message: "can only contain letters, numbers, and underscores")
+    |> unsafe_validate_unique(:username, Malarkey.Repo)
+    |> unique_constraint(:username)
+  end
+
   defp validate_password(changeset, opts) do
     changeset
     |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
+    |> validate_length(:password, min: 8, max: 72)
+    # Examples of additional password validation:
     # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
     # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
@@ -91,7 +104,8 @@ defmodule Malarkey.Accounts.User do
       changeset
       # If using Bcrypt, then further validate it is at most 72 bytes long
       |> validate_length(:password, max: 72, count: :bytes)
-      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
+      # Hashing could be done with `Bcrypt`, but we use `Pbkdf2` for security.
+      |> put_change(:hashed_password, Pbkdf2.hash_pwd_salt(password))
       |> delete_change(:password)
     else
       changeset
@@ -143,6 +157,18 @@ defmodule Malarkey.Accounts.User do
   end
 
   @doc """
+  A user changeset for profile updates.
+  """
+  def profile_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:display_name, :bio, :location, :website, :avatar_url, :header_url])
+    |> validate_length(:display_name, max: 50)
+    |> validate_length(:bio, max: 160)
+    |> validate_length(:location, max: 30)
+    |> validate_length(:website, max: 100)
+  end
+
+  @doc """
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(user) do
@@ -154,15 +180,15 @@ defmodule Malarkey.Accounts.User do
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call
-  `Bcrypt.no_user_verify/0` to avoid timing attacks.
+  `Pbkdf2.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(%Malarkey.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
-    Bcrypt.verify_pass(password, hashed_password)
+    Pbkdf2.verify_pass(password, hashed_password)
   end
 
   def valid_password?(_, _) do
-    Bcrypt.no_user_verify()
+    Pbkdf2.no_user_verify()
     false
   end
 

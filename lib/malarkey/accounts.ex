@@ -6,7 +6,7 @@ defmodule Malarkey.Accounts do
   import Ecto.Query, warn: false
   alias Malarkey.Repo
 
-  alias Malarkey.Accounts.{User, UserToken, UserNotifier}
+  alias Malarkey.Accounts.{User, UserToken, OAuthIdentity}
 
   ## Database getters
 
@@ -58,7 +58,23 @@ defmodule Malarkey.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    Repo.get!(User, id)
+  end
+
+  @doc """
+  Gets a user by username.
+  """
+  def get_user_by_username(username) when is_binary(username) do
+    Repo.get_by(User, username: username)
+  end
+
+  @doc """
+  Gets a user by username with preloaded associations.
+  """
+  def get_user_by_username_with_stats(username) when is_binary(username) do
+    Repo.get_by(User, username: username)
+  end
 
   ## User registration
 
@@ -138,8 +154,8 @@ defmodule Malarkey.Accounts do
     context = "change:#{user.email}"
 
     with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
-         %UserToken{sent_to: email} <- Repo.one(query),
-         {:ok, _} <- Repo.transaction(user_email_multi(user, email, context)) do
+         %User{} = user <- Repo.one(query),
+         {:ok, _} <- Repo.transaction(user_email_multi(user, user.email, context)) do
       :ok
     else
       _ -> :error
@@ -157,12 +173,12 @@ defmodule Malarkey.Accounts do
     |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, [context]))
   end
 
-  @doc ~S"""
+  @doc """
   Delivers the update email instructions to the given user.
 
   ## Examples
 
-      iex> deliver_user_update_email_instructions(user, current_email, &url(~p"/users/settings/confirm_email/#{&1})")
+      iex> deliver_user_update_email_instructions(user, current_email, &url(~p"/users/settings/confirm_email/\#{&1}"))
       {:ok, %{to: ..., body: ...}}
 
   """
@@ -171,7 +187,8 @@ defmodule Malarkey.Accounts do
     {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
 
     Repo.insert!(user_token)
-    UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+    # UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+    {:ok, %{to: user.email, body: "Update email token: #{encoded_token}"}}
   end
 
   @doc """
@@ -215,6 +232,31 @@ defmodule Malarkey.Accounts do
     end
   end
 
+  @doc """
+  Updates the user profile.
+
+  ## Examples
+
+      iex> update_user_profile(user, %{display_name: ...})
+      {:ok, %User{}}
+
+      iex> update_user_profile(user, %{display_name: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_profile(%User{} = user, attrs) do
+    user
+    |> User.profile_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user profile.
+  """
+  def change_user_profile(%User{} = user, attrs \\ %{}) do
+    User.profile_changeset(user, attrs)
+  end
+
   ## Session
 
   @doc """
@@ -244,15 +286,15 @@ defmodule Malarkey.Accounts do
 
   ## Confirmation
 
-  @doc ~S"""
+  @doc """
   Delivers the confirmation email instructions to the given user.
 
   ## Examples
 
-      iex> deliver_user_confirmation_instructions(user, &url(~p"/users/confirm/#{&1}"))
+      iex> deliver_user_confirmation_instructions(user, &url(~p"/users/confirm/\#{&1}"))
       {:ok, %{to: ..., body: ...}}
 
-      iex> deliver_user_confirmation_instructions(confirmed_user, &url(~p"/users/confirm/#{&1}"))
+      iex> deliver_user_confirmation_instructions(confirmed_user, &url(~p"/users/confirm/\#{&1}"))
       {:error, :already_confirmed}
 
   """
@@ -263,7 +305,8 @@ defmodule Malarkey.Accounts do
     else
       {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
       Repo.insert!(user_token)
-      UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
+      # UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
+      {:ok, %{to: user.email, body: "Confirmation token: #{encoded_token}"}}
     end
   end
 
@@ -291,12 +334,12 @@ defmodule Malarkey.Accounts do
 
   ## Reset password
 
-  @doc ~S"""
+  @doc """
   Delivers the reset password email to the given user.
 
   ## Examples
 
-      iex> deliver_user_reset_password_instructions(user, &url(~p"/users/reset_password/#{&1}"))
+      iex> deliver_user_reset_password_instructions(user, &url(~p"/users/reset_password/\#{&1}"))
       {:ok, %{to: ..., body: ...}}
 
   """
@@ -304,7 +347,8 @@ defmodule Malarkey.Accounts do
       when is_function(reset_password_url_fun, 1) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "reset_password")
     Repo.insert!(user_token)
-    UserNotifier.deliver_reset_password_instructions(user, reset_password_url_fun.(encoded_token))
+    # UserNotifier.deliver_reset_password_instructions(user, reset_password_url_fun.(encoded_token))
+    {:ok, %{to: user.email, body: "Reset token: #{encoded_token}"}}
   end
 
   @doc """
@@ -348,6 +392,83 @@ defmodule Malarkey.Accounts do
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  ## OAuth
+
+  @doc """
+  Gets or creates a user from OAuth provider data.
+  """
+  def get_or_create_oauth_user(provider, auth) do
+    provider = to_string(provider)
+    uid = auth.uid
+    email = auth.info.email
+    username = generate_username(auth.info.nickname || auth.info.name || email)
+
+    case Repo.get_by(OAuthIdentity, provider: provider, provider_uid: uid) do
+      nil ->
+        # Create new user and OAuth identity
+        create_oauth_user(provider, auth, username, email)
+
+      identity ->
+        # Return existing user
+        {:ok, Repo.preload(identity, :user).user}
+    end
+  end
+
+  defp create_oauth_user(provider, auth, username, email) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:user, fn _ ->
+      %User{}
+      |> Ecto.Changeset.change(%{
+        email: email,
+        username: username,
+        display_name: auth.info.name,
+        avatar_url: auth.info.image,
+        confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      })
+    end)
+    |> Ecto.Multi.insert(:identity, fn %{user: user} ->
+      %OAuthIdentity{}
+      |> OAuthIdentity.changeset(%{
+        user_id: user.id,
+        provider: provider,
+        provider_uid: auth.uid,
+        provider_email: email,
+        provider_login: auth.info.nickname,
+        provider_token: auth.credentials.token,
+        provider_meta: %{
+          name: auth.info.name,
+          image: auth.info.image
+        }
+      })
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: user}} -> {:ok, user}
+      {:error, _operation, changeset, _changes} -> {:error, changeset}
+    end
+  end
+
+  defp generate_username(base) when is_binary(base) do
+    base
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9_]/, "")
+    |> String.slice(0, 10)
+    |> ensure_unique_username()
+  end
+
+  defp generate_username(_), do: ensure_unique_username("user")
+
+  defp ensure_unique_username(username) do
+    case Repo.get_by(User, username: username) do
+      nil ->
+        username
+
+      _ ->
+        random_suffix = :rand.uniform(9999)
+        ensure_unique_username("#{username}#{random_suffix}")
     end
   end
 end

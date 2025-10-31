@@ -39,12 +39,12 @@ defmodule MalarkeyWeb do
   def controller do
     quote do
       use Phoenix.Controller,
-        namespace: MalarkeyWeb,
         formats: [:html, :json],
         layouts: [html: MalarkeyWeb.Layouts]
 
+      use Gettext, backend: MalarkeyWeb.Gettext
+
       import Plug.Conn
-      import MalarkeyWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -67,9 +67,6 @@ defmodule MalarkeyWeb do
     end
   end
 
-  @spec html ::
-          {:__block__, [],
-           [{:__block__, [], [...]} | {:import, [...], [...]} | {:use, [...], [...]}, ...]}
   def html do
     quote do
       use Phoenix.Component
@@ -85,11 +82,14 @@ defmodule MalarkeyWeb do
 
   defp html_helpers do
     quote do
+      # Translation
+      use Gettext, backend: MalarkeyWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
+      # Core UI components
       import MalarkeyWeb.CoreComponents
-      import MalarkeyWeb.Gettext
+      import MalarkeyWeb.Components.Avatar
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
@@ -109,7 +109,7 @@ defmodule MalarkeyWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/view/etc.
+  When used, dispatch to the appropriate controller/live_view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])

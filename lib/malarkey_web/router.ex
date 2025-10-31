@@ -7,7 +7,7 @@ defmodule MalarkeyWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, {MalarkeyWeb.Layouts, :root}
+    plug :put_root_layout, html: {MalarkeyWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
@@ -17,17 +17,72 @@ defmodule MalarkeyWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Routes for unauthenticated users
+  scope "/", MalarkeyWeb do
+    pipe_through [:browser, :redirect_if_user_is_authenticated]
+
+    live_session :redirect_if_user_is_authenticated,
+      on_mount: [{MalarkeyWeb.UserAuth, :redirect_if_user_is_authenticated}] do
+      live "/users/register", UserRegistrationLive, :new
+      live "/users/log_in", UserLoginLive, :new
+      live "/users/reset_password", UserForgotPasswordLive, :new
+      live "/users/reset_password/:token", UserResetPasswordLive, :edit
+    end
+
+    post "/users/log_in", UserSessionController, :create
+  end
+
+  # OAuth routes
+  scope "/auth", MalarkeyWeb do
+    pipe_through :browser
+
+    get "/:provider", AuthController, :request
+    get "/:provider/callback", AuthController, :callback
+  end
+
+  # Routes for authenticated users
+  scope "/", MalarkeyWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{MalarkeyWeb.UserAuth, :ensure_authenticated}] do
+      live "/", TimelineLive.Index, :index
+      live "/compose", TimelineLive.Index, :compose
+      live "/notifications", NotificationLive.Index, :index
+      live "/explore", ExploreLive.Index, :index
+
+      live "/users/settings", UserSettingsLive, :edit
+      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+      live "/settings/profile", ProfileSettingsLive, :edit
+
+      live "/posts/:id", PostLive.Show, :show
+
+      live "/:username", ProfileLive.Index, :index
+      live "/:username/with_replies", ProfileLive.Index, :with_replies
+      live "/:username/media", ProfileLive.Index, :media
+      live "/:username/likes", ProfileLive.Index, :likes
+      live "/:username/followers", ProfileLive.Followers, :index
+      live "/:username/following", ProfileLive.Following, :index
+
+      live "/:username/status/:id", PostLive.Show, :show
+    end
+
+    delete "/users/log_out", UserSessionController, :delete
+    get "/users/confirm", UserConfirmationInstructionsController, :new
+    post "/users/confirm", UserConfirmationInstructionsController, :create
+    get "/users/confirm/:token", UserConfirmationController, :edit
+    post "/users/confirm/:token", UserConfirmationController, :update
+  end
+
+  # Public routes that work for both authenticated and non-authenticated users
   scope "/", MalarkeyWeb do
     pipe_through :browser
 
-    live "/", PostLive.Index, :index
-    live "/posts", PostLive.Index, :index
-    live "/posts/new", PostLive.Index, :new
-    live "/posts/:id/like", PostLive.Index, :like
-    live "/posts/:id/edit", PostLive.Index, :edit
-
-    live "/posts/:id", PostLive.Show, :show
-    live "/posts/:id/show/edit", PostLive.Show, :edit
+    live_session :public,
+      on_mount: [{MalarkeyWeb.UserAuth, :mount_current_user}] do
+      live "/about", PageLive.About, :index
+      live "/explore/public", ExploreLive.Public, :index
+    end
   end
 
   # Other scopes may use custom stacks.
@@ -49,44 +104,6 @@ defmodule MalarkeyWeb.Router do
 
       live_dashboard "/dashboard", metrics: MalarkeyWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-  end
-
-  ## Authentication routes
-
-  scope "/", MalarkeyWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
-
-    live_session :redirect_if_user_is_authenticated,
-      on_mount: [{MalarkeyWeb.UserAuth, :redirect_if_user_is_authenticated}] do
-      live "/users/register", UserRegistrationLive, :new
-      live "/users/log_in", UserLoginLive, :new
-      live "/users/reset_password", UserForgotPasswordLive, :new
-      live "/users/reset_password/:token", UserResetPasswordLive, :edit
-    end
-
-    post "/users/log_in", UserSessionController, :create
-  end
-
-  scope "/", MalarkeyWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    live_session :require_authenticated_user,
-      on_mount: [{MalarkeyWeb.UserAuth, :ensure_authenticated}] do
-      live "/users/settings", UserSettingsLive, :edit
-      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-    end
-  end
-
-  scope "/", MalarkeyWeb do
-    pipe_through [:browser]
-
-    delete "/users/log_out", UserSessionController, :delete
-
-    live_session :current_user,
-      on_mount: [{MalarkeyWeb.UserAuth, :mount_current_user}] do
-      live "/users/confirm/:token", UserConfirmationLive, :edit
-      live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
   end
 end

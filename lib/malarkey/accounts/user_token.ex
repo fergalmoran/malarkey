@@ -1,8 +1,9 @@
 defmodule Malarkey.Accounts.UserToken do
   use Ecto.Schema
   import Ecto.Query
-  alias Malarkey.Accounts.UserToken
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   @hash_algorithm :sha256
   @rand_size 32
 
@@ -28,22 +29,12 @@ defmodule Malarkey.Accounts.UserToken do
   tokens do not need to be hashed.
 
   The reason why we store session tokens in the database, even
-  though Phoenix already provides a session cookie, is because
-  Phoenix' default session cookies are not persisted, they are
-  simply signed and potentially encrypted. This means they are
-  valid indefinitely, unless you change the signing/encryption
-  salt.
-
-  Therefore, storing them allows individual user
-  sessions to be expired. The token system can also be extended
-  to store additional data, such as the device used for logging in.
-  You could then use this information to display all valid sessions
-  and devices in the UI and allow users to explicitly expire any
-  session they deem invalid.
+  though Phoenix already provides a session cookie, is to allow
+  users to explicitly invalidate any of their open sessions.
   """
   def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
-    {token, %UserToken{token: token, context: "session", user_id: user.id}}
+    {token, %Malarkey.Accounts.UserToken{token: token, context: "session", user_id: user.id}}
   end
 
   @doc """
@@ -86,7 +77,7 @@ defmodule Malarkey.Accounts.UserToken do
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
     {Base.url_encode64(token, padding: false),
-     %UserToken{
+     %Malarkey.Accounts.UserToken{
        token: hashed_token,
        context: context,
        sent_to: sent_to,
@@ -163,17 +154,17 @@ defmodule Malarkey.Accounts.UserToken do
   Returns the token struct for the given token value and context.
   """
   def token_and_context_query(token, context) do
-    from UserToken, where: [token: ^token, context: ^context]
+    from Malarkey.Accounts.UserToken, where: [token: ^token, context: ^context]
   end
 
   @doc """
   Gets all tokens for the given user for the given contexts.
   """
   def user_and_contexts_query(user, :all) do
-    from t in UserToken, where: t.user_id == ^user.id
+    from t in Malarkey.Accounts.UserToken, where: t.user_id == ^user.id
   end
 
   def user_and_contexts_query(user, [_ | _] = contexts) do
-    from t in UserToken, where: t.user_id == ^user.id and t.context in ^contexts
+    from t in Malarkey.Accounts.UserToken, where: t.user_id == ^user.id and t.context in ^contexts
   end
 end

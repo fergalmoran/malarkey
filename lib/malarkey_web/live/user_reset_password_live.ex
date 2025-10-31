@@ -1,56 +1,70 @@
 defmodule MalarkeyWeb.UserResetPasswordLive do
   use MalarkeyWeb, :live_view
 
+  import MalarkeyWeb.Components.UI
+
   alias Malarkey.Accounts
 
   def render(assigns) do
     ~H"""
-    <.header>Reset Password</.header>
+    <div class="flex min-h-screen items-center justify-center px-4 py-12">
+      <.ui_card class="w-full max-w-md">
+        <.ui_card_header>
+          <.ui_card_title class="text-2xl text-center">Reset password</.ui_card_title>
+          <.ui_card_description class="text-center">
+            Enter your new password below
+          </.ui_card_description>
+        </.ui_card_header>
 
-    <.simple_form
-      :let={f}
-      for={@changeset}
-      id="reset_password_form"
-      phx-submit="reset_password"
-      phx-change="validate"
-    >
-      <.error :if={@changeset.action == :insert}>
-        Oops, something went wrong! Please check the errors below.
-      </.error>
+        <.ui_card_content>
+          <.form
+            for={@form}
+            id="reset_password_form"
+            phx-submit="reset_password"
+            phx-change="validate"
+            class="space-y-4"
+          >
+            <.ui_alert :if={@form.errors != []} variant="destructive">
+              Oops, something went wrong! Please check the errors below.
+            </.ui_alert>
 
-      <.input field={{f, :password}} type="password" label="New password" required />
-      <.input
-        field={{f, :password_confirmation}}
-        type="password"
-        label="Confirm new password"
-        required
-      />
-      <:actions>
-        <.button phx-disable-with="Resetting...">Reset Password</.button>
-      </:actions>
-    </.simple_form>
+            <.ui_input field={@form[:password]} type="password" label="New password" required />
+            <.ui_input
+              field={@form[:password_confirmation]}
+              type="password"
+              label="Confirm new password"
+              required
+            />
 
-    <p>
-      <.link href={~p"/users/register"}>Register</.link>
-      |
-      <.link href={~p"/users/log_in"}>Log in</.link>
-    </p>
+            <.ui_button type="submit" class="w-full" phx-disable-with="Resetting...">
+              Reset password
+            </.ui_button>
+          </.form>
+
+          <p class="mt-4 text-center text-sm text-muted-foreground">
+            <.link href={~p"/users/register"} class="font-medium text-primary hover:underline">Register</.link>
+            {" · "}
+            <.link href={~p"/users/log_in"} class="font-medium text-primary hover:underline">Log in</.link>
+          </p>
+        </.ui_card_content>
+      </.ui_card>
+    </div>
     """
   end
 
   def mount(params, _session, socket) do
     socket = assign_user_and_token(socket, params)
 
-    socket =
+    form_source =
       case socket.assigns do
         %{user: user} ->
-          assign(socket, :changeset, Accounts.change_user_password(user))
+          Accounts.change_user_password(user)
 
         _ ->
-          socket
+          %{}
       end
 
-    {:ok, socket, temporary_assigns: [changeset: nil]}
+    {:ok, assign_form(socket, form_source), temporary_assigns: [form: nil]}
   end
 
   # Do not log in the user after reset password to avoid a
@@ -64,13 +78,13 @@ defmodule MalarkeyWeb.UserResetPasswordLive do
          |> redirect(to: ~p"/users/log_in")}
 
       {:error, changeset} ->
-        {:noreply, assign(socket, :changeset, Map.put(changeset, :action, :insert))}
+        {:noreply, assign_form(socket, Map.put(changeset, :action, :insert))}
     end
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset = Accounts.change_user_password(socket.assigns.user, user_params)
-    {:noreply, assign(socket, changeset: Map.put(changeset, :action, :validate))}
+    {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
   defp assign_user_and_token(socket, %{"token" => token}) do
@@ -81,5 +95,9 @@ defmodule MalarkeyWeb.UserResetPasswordLive do
       |> put_flash(:error, "Reset password link is invalid or it has expired.")
       |> redirect(to: ~p"/")
     end
+  end
+
+  defp assign_form(socket, %{} = source) do
+    assign(socket, :form, to_form(source, as: "user"))
   end
 end

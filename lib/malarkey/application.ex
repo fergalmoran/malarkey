@@ -8,18 +8,16 @@ defmodule Malarkey.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Start the Telemetry supervisor
       MalarkeyWeb.Telemetry,
-      # Start the Ecto repository
       Malarkey.Repo,
-      # Start the PubSub system
+      {DNSCluster, query: Application.get_env(:malarkey, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Malarkey.PubSub},
-      # Start Finch
+      # Start the Finch HTTP client for sending emails
       {Finch, name: Malarkey.Finch},
-      # Start the Endpoint (http/https)
-      MalarkeyWeb.Endpoint
       # Start a worker by calling: Malarkey.Worker.start_link(arg)
-      # {Malarkey.Worker, arg}
+      # {Malarkey.Worker, arg},
+      # Start to serve requests, typically the last entry
+      MalarkeyWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
